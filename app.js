@@ -22,24 +22,6 @@ let playing = false;
 let playInterval = null;
 let currentIndex = 0;
 
-// Si tu n'as pas encore de gestion de l'audio ctx au démarrage utilisateur :
-
-// Variable globale AudioContext
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// Fonction pour débloquer l'audio au premier clic/tap
-function unlockAudio() {
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  document.body.removeEventListener('touchstart', unlockAudio);
-  document.body.removeEventListener('click', unlockAudio);
-}
-
-// Ajouter des écouteurs au chargement de la page pour débloquer l'audio
-document.body.addEventListener('touchstart', unlockAudio, false);
-document.body.addEventListener('click', unlockAudio, false);
-
 
 // Audio context setup
 const AudioContext = window.AudioContext || window.webkitAudioContext;
