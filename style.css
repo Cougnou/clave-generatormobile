@@ -1,0 +1,150 @@
+/* style.css */
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #007acc;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  flex: 1 0 180px;
+  font-weight: 600;
+}
+
+.input-group input[type="text"] {
+  flex: 2 0 200px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.input-group button {
+  flex: 0 0 auto;
+  padding: 7px 15px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.input-group button:hover {
+  background-color: #005fa3;
+}
+
+.bases-display {
+  font-style: italic;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  border-radius: 5px;
+}
+
+.controls,
+.volume-controls,
+.play-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.controls label,
+.volume-controls label,
+.play-controls label {
+  white-space: nowrap;
+  font-weight: 600;
+  user-select: none;
+}
+
+.controls select,
+.controls input[type="number"],
+.volume-controls input[type="range"] {
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+}
+
+.volume-controls input[type="range"] {
+  width: 120px;
+}
+
+.play-controls button {
+  padding: 8px 20px;
+  background-color: #007acc;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.play-controls button:hover {
+  background-color: #005fa3;
+}
+
+.error-msg {
+  color: #b00020;
+  font-weight: 700;
+  margin-top: 10px;
+  min-height: 1.2em;
+}
+
+@media (max-width: 500px) {
+  .input-group,
+  .controls,
+  .volume-controls,
+  .play-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .input-group label,
+  .controls label,
+  .volume-controls label,
+  .play-controls label {
+    margin-bottom: 4px;
+  }
+
+  .volume-controls input[type="range"] {
+    width: 100%;
+  }
+}

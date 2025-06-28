@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Générateur de Clave Chiffrée</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    margin: 20px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 24px;
+    font-weight: 700;
+  }
+
+  label {
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  input[type="text"], input[type="number"] {
+    border: 1.8px solid #b0bec5;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    width: 220px;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #42a5f5;
+    outline: none;
+  }
+
+  button {
+    background-color: #42a5f5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+  }
+  button:hover {
+    background-color: #1e88e5;
+  }
+  button:active {
+    background-color: #1565c0;
+  }
+
+  #clave-canvas {
+    display: block;
+    margin: 12px auto 24px;
+    width: 100%;
+    max-height: 120px;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 6px 12px rgba(66, 165, 245, 0.15);
+    border: 1.5px solid #90a4ae;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .row label, .row input, .row button {
+    margin-bottom: 8px;
+  }
+
+  .volume-control {
+    max-width: 140px;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .volume-control label {
+    margin-bottom: 4px;
+  }
+  .volume-control input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 5px;
+    background: #d1d9e6;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .volume-control input[type=range]:hover {
+    background: #90caf9;
+  }
+  .volume-control input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #42a5f5;
+    cursor: pointer;
+    border: none;
+    margin-top: -6px;
+    transition: background-color 0.3s ease;
+  }
+  .volume-control input[type=range]::-webkit-slider-thumb:hover {
+    background: #1e88e5;
+  }
+  .volume-control input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #42a5f5;
+    cursor: pointer;
+    border: none;
+  }
+
+  #bases-label {
+    margin-top: 10px;
+    font-style: italic;
+    color: #777;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .controls-group {
+    margin-top: 16px;
+  }
+
+  .controls-group.flex-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .controls-group.flex-row.justify-center {
+    justify-content: center;
+  }
+
+  .checkbox-label {
+    user-select: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<h1>Générateur de Clave Chiffrée</h1>
+
+<!-- Clave chiffrée -->
+<div class="controls-group">
+  <label for="clave-input">Entrer la clave chiffrée (ex : 3 2 4) :</label><br />
+  <input id="clave-input" type="text" placeholder="3 2 4" autocomplete="off" />
+  <button id="generate-btn">Générer Clave</button>
+</div>
+
+<!-- Canvas clave + métronome -->
+<canvas id="clave-canvas" aria-label="Visualisation de la clave et du métronome" role="img"></canvas>
+
+<!-- Contrôles subdivision, mute, tempo -->
+<div class="controls-group flex-row justify-center">
+  <label for="subdiv-input">Subdivision métronome :</label>
+  <input id="subdiv-input" type="number" min="1" max="16" value="4" style="width: 60px;" />
+  
+  <label class="checkbox-label" for="mute-metronome">
+    <input type="checkbox" id="mute-metronome" />
+    Mute Métronome
+  </label>
+  
+  <label for="tempo-input">Tempo (BPM) :</label>
+  <input id="tempo-input" type="number" min="20" max="300" value="120" style="width: 80px;" />
+</div>
+
+<!-- Boutons Play / Boucle -->
+<div class="controls-group flex-row justify-center" style="margin-top:12px;">
+  <button id="play-btn">Play</button>
+  <label class="checkbox-label" for="loop-checkbox" style="font-weight: normal; margin-left: 12px;">
+    <input type="checkbox" id="loop-checkbox" />
+    Boucle
+  </label>
+</div>
+
+<!-- Volumes -->
+<div class="controls-group flex-row justify-center" style="margin-top: 24px; gap: 32px;">
+  <div class="volume-control">
+    <label for="volume-master">Volume Master</label>
+    <input id="volume-master" type="range" min="0" max="1" step="0.01" value="1" />
+  </div>
+  <div class="volume-control">
+    <label for="volume-clave">Volume Clave</label>
+    <input id="volume-clave" type="range" min="0" max="1" step="0.01" value="1" />
+  </div>
+  <div class="volume-control">
+    <label for="volume-metro">Volume Métronome</label>
+    <input id="volume-metro" type="range" min="0" max="1" step="0.01" value="1" />
+  </div>
+</div>
+
+<!-- Bases possibles -->
+<div id="bases-label" aria-live="polite"></div>
+
+<!-- Sons -->
+<audio id="note-audio" src="note.mp3" preload="auto"></audio>
+<audio id="kick-audio" src="kick.mp3" preload="auto"></audio>
+
+<script>
+(() => {
+  // Elements
+  const claveInput = document.getElementById('clave-input');
+  const generateBtn = document.getElementById('generate-btn');
+  const subdivInput = document.getElementById('subdiv-input');
+  const muteMetronomeChk = document.getElementById('mute-metronome');
+  const tempoInput = document.getElementById('tempo-input');
+  const playBtn = document.getElementById('play-btn');
+  const loopChk = document.getElementById('loop-checkbox');
+  const basesLabel = document.getElementById('bases-label');
+  const claveCanvas = document.getElementById('clave-canvas');
+
+  const volumeMaster = document.getElementById('volume-master');
+  const volumeClave = document.getElementById('volume-clave');
+  const volumeMetro = document.getElementById('volume-metro');
+
+  const noteAudio = document.getElementById('note-audio');
+  const kickAudio = document.getElementById('kick-audio');
+
+  let claveSequence = [];
+  let metronomeSequence = [];
+  let playing = false;
+  let currentIndex = -1;
+  let intervalId = null;
+
+  function generateClave() {
+    const inputText = claveInput.value.trim();
+    if (!inputText) {
+      alert("Veuillez entrer une clave chiffrée valide.");
+      return;
+    }
+
+    const groups = inputText.split(/\s+/);
+    let sequence = [];
+
+    try {
+      for (const g of groups) {
+        const n = parseInt(g, 10);
+        if (isNaN(n) || n <= 0) throw new Error();
+        for (let i = 0; i < n; i++) {
+          sequence.push(1);
+          if (i !== n - 1) sequence.push(0);
+        }
+        sequence.push(0, 0);
+      }
+    } catch {
+      alert("Format invalide. Entrez des nombres positifs séparés par des espaces.");
+      return;
+    }
+
+    claveSequence = sequence;
+
+    updateMetronomeSequence();
+    updateBasesDisplay();
+    currentIndex = -1;
+    drawCanvas(-1);
+  }
+
+  function updateMetronomeSequence() {
+    const subdiv = parseInt(subdivInput.value, 10);
+    const len = claveSequence.length;
+    metronomeSequence = new Array(len).fill(0);
+    for (let i = 0; i < len; i += subdiv) {
+      metronomeSequence[i] = 1;
+    }
+  }
+
+  function updateBasesDisplay() {
+    const totalSubdiv = claveSequence.length;
+    const basesMap = {3: "Ternaire", 4: "Binaire", 5: "Quinaire", 7: "Septénaire"};
+    const possibles = Object.entries(basesMap)
+      .filter(([b]) => totalSubdiv % b === 0)
+      .map(([_, name]) => name);
+    basesLabel.textContent = "Bases possibles : " + (possibles.length ? possibles.join(", ") : "Aucune");
+  }
+
+  function drawCanvas(highlightIdx) {
+    const ctx = claveCanvas.getContext('2d');
+
+    const w = claveCanvas.width = claveCanvas.clientWidth * devicePixelRatio;
+    const h = claveCanvas.height = 120 * devicePixelRatio;
+    claveCanvas.style.height = '120px';
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+
+    ctx.clearRect(0, 0, w, h);
+
+    const n = claveSequence.length;
+    if (n === 0) return;
+
+    const dia = Math.min(28, Math.floor(claveCanvas.clientWidth / (n + 2)));
+    const margin = (claveCanvas.clientWidth - dia * n) / 2;
+
+    const yClave = 38;
+    const yMetro = 90;
+    const radius = dia / 2 * 0.7;
+
+    for (let i = 0; i < n; i++) {
+      const x = margin + i * dia + dia / 2;
+
+      // Clave circle
+      ctx.beginPath();
+      ctx.arc(x, yClave, radius, 0, 2 * Math.PI);
+
+      if (i === highlightIdx && claveSequence[i] === 1) {
+        ctx.fillStyle = "#ffd54f"; // jaune clair
+      } else if (claveSequence[i] === 1) {
+        ctx.fillStyle = "#37474f"; // gris foncé
+      } else {
+        ctx.fillStyle = "white";
+      }
+      ctx.fill();
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#37474f";
+      ctx.stroke();
+
+      // Métronome circle (même forme, couleur différente)
+      ctx.beginPath();
+      ctx.arc(x, yMetro, radius * 0.8, 0, 2 * Math.PI);
+
+      if (i === highlightIdx && metronomeSequence[i] === 1) {
+        ctx.fillStyle = "#ffca28"; // jaune doré
+      } else if (metronomeSequence[i] === 1) {
+        ctx.fillStyle = "#ef5350"; // rouge doux
+      } else {
+        ctx.fillStyle = "white";
+      }
+      ctx.fill();
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#ef5350";
+      ctx.stroke();
+    }
+  }
+
+  function updateVolumes() {
+    const masterVol = parseFloat(volumeMaster.value);
+    const claveVol = parseFloat(volumeClave.value);
+    const metroVol = parseFloat(volumeMetro.value);
+
+    noteAudio.volume = masterVol * claveVol;
+    kickAudio.volume = masterVol * metroVol;
+  }
+
+  function playLoop() {
+    if (claveSequence.length === 0) return;
+
+    const bpm = parseInt(tempoInput.value, 10);
+    if (isNaN(bpm) || bpm < 20 || bpm > 300) {
+      alert("Tempo invalide, entre 20 et 300 BPM.");
+      stopPlaying();
+      return;
+    }
+
+    const interval = 60000 / bpm / 2; // subdivision en ms
+    currentIndex = 0;
+
+    intervalId = setInterval(() => {
+      if (currentIndex >= claveSequence.length) {
+        if (loopChk.checked) {
+          currentIndex = 0;
+        } else {
+          stopPlaying();
+          return;
+        }
+      }
+
+      // Jouer note si 1
+      if (claveSequence[currentIndex] === 1) {
+        noteAudio.currentTime = 0;
+        noteAudio.play();
+      }
+      // Jouer métronome si 1 et non muet
+      if (metronomeSequence[currentIndex] === 1 && !muteMetronomeChk.checked) {
+        kickAudio.currentTime = 0;
+        kickAudio.play();
+      }
+
+      drawCanvas(currentIndex);
+      currentIndex++;
+    }, interval);
+  }
+
+  function startPlaying() {
+    if (claveSequence.length === 0) {
+      alert("Veuillez générer une clave avant de jouer.");
+      return;
+    }
+    updateVolumes();
+    playing = true;
+    playBtn.textContent = "Stop";
+    playLoop();
+  }
+
+  function stopPlaying() {
+    playing = false;
+    playBtn.textContent = "Play";
+    clearInterval(intervalId);
+    intervalId = null;
+    currentIndex = -1;
+    drawCanvas(-1);
+  }
+
+  // Listeners
+  generateBtn.addEventListener('click', () => {
+    generateClave();
+    stopPlaying();
+  });
+
+  subdivInput.addEventListener('change', () => {
+    updateMetronomeSequence();
+    drawCanvas(-1);
+    stopPlaying();
+  });
+
+  tempoInput.addEventListener('change', () => {
+    if (playing) {
+      stopPlaying();
+      startPlaying();
+    }
+  });
+
+  muteMetronomeChk.addEventListener('change', () => {
+    // aucun effet immédiat, au prochain tick
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (playing) {
+      stopPlaying();
+    } else {
+      startPlaying();
+    }
+  });
+
+  loopChk.addEventListener('change', () => {
+    // pas d'action particulière
+  });
+
+  volumeMaster.addEventListener('input', updateVolumes);
+  volumeClave.addEventListener('input', updateVolumes);
+  volumeMetro.addEventListener('input', updateVolumes);
+
+  // Initialisation
+  claveInput.value = "3 2 4";
+  generateClave();
+})();
+</script>
+
+</body>
+</html>
